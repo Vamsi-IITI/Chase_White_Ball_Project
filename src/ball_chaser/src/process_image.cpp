@@ -25,36 +25,47 @@ void process_image_callback(const sensor_msgs::Image img)
 {
 
     int white_pixel = 255;
-    float grid_size = img.height * img.width;
+    bool ball_visible = false;
+    int left_barrier = img.step/3;
+    int right_barrier = (2*img.step)/3;
+    float grid_size = img.height * img.step;
     // TODO: Loop through each pixel in the image and check if there's a bright white one
     // Then, identify if this pixel falls in the left, mid, or right side of the image
     // Depending on the white ball position, call the drive_bot function and pass velocities to it
     // Request a stop when there's no white ball seen by the camera
 
-    for (int i = 0; i < grid_size ; i++){
+    for (int i = 0; i < grid_size ; i+=3){
 
-        if (img.data[i] == white_pixel && img.data[i+grid_size] == white_pixel && img.data[i+2*grid_size] == white_pixel){
+        if (img.data[i] == white_pixel && img.data[i+1] == white_pixel && img.data[i+2] == white_pixel){
+            
             ROS_INFO("White ball detected !");
+            ball_visible = true;
+            int k = i % img.step;   
 
-            if (i <= img.width/4){
+            if (k < left_barrier){
                 ROS_INFO("Turning left");
                 drive_robot(0,0.5); 
+                break;
             }
 
-            if (i > img.width/4 && i < 0.75 * img.width){
+            if (k > left_barrier && k < right_barrier){
                 ROS_INFO("Move forward");
                 drive_robot(0.5,0); 
+                break;
             }
 
-            if (i >= 0.75 * img.width){
+            if (k > right_barrier){
                 ROS_INFO("Turning right");
                 drive_robot(0,-0.5); 
+                break;
             }
         }
 
-        else{
-            ROS_INFO("Ball not in field of view");
-        }
+    }
+
+    if(!ball_visible){
+        ROS_INFO("Ball not in field of view");
+        drive_robot(-0.1,0.0);
     }
 }
 
