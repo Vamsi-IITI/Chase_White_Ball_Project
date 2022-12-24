@@ -65,7 +65,7 @@ void process_image_callback(const sensor_msgs::Image img)
 
     if(!ball_visible){
         ROS_INFO("Ball not in field of view");
-        drive_robot(-0.1,0.0);
+        drive_robot(0.0,0.0);
     }
 }
 
